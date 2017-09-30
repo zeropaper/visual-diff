@@ -148,6 +148,7 @@ module.exports = class VisualDiff {
   }
 
   compare(testName, resolution, screenshot, reference) {
+    const browserName = this.browserName;
     const tolerance = this.tolerance;
     const shotFilename = this.shotFilename;
     const diffFilepath = this.diffFilepath(testName, resolution);
@@ -157,10 +158,9 @@ module.exports = class VisualDiff {
         .compareTo(reference)
         .onComplete((data) => {
           if (data.rawMisMatchPercentage > tolerance) {
-            console.info('BAAAAAMMMM', testName, resolution, data.rawMisMatchPercentage);
             fs.writeFile(diffFilepath, data.getBuffer(), err => {
               if (err) return reject(err);
-              reject(new Error(`The ${data.misMatchPercentage}% mismatching exceeds the ${tolerance}% tolerance for ${testName} (${resolution})`));
+              reject(new Error(`The ${data.misMatchPercentage}% mismatching exceeds the ${tolerance}% tolerance for ${testName} (${resolution} in ${browserName})`));
             });
           }
           else {
