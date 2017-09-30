@@ -1,0 +1,50 @@
+{
+  "name": "visual-diff",
+  "version": "1.0.0",
+  "description": "A tool to make visual diffing",
+  "main": "index.js",
+  "engines": {
+    "node": ">=8.0.0"
+  },
+  "scripts": {
+    "prebaseline": "rimraf references",
+    "baseline": "npm-run-all test:wdio:* test:wdio:*",
+    "test:wdio:async": "wdio ./test/wdio.async.conf.js",
+    "test:wdio:sync": "wdio ./test/wdio.sync.conf.js",
+    "test:mocha": "mocha ./test/mocha/**/*.js",
+    "test": "npm-run-all test:mocha test:wdio:sync test:wdio:async"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zeropaper/visual-diff.git"
+  },
+  "keywords": [
+    "visual",
+    "diff",
+    "testing",
+    "regression",
+    "test"
+  ],
+  "author": "Valentin Vago <zeropaper@irata.ch>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zeropaper/visual-diff/issues"
+  },
+  "homepage": "https://github.com/zeropaper/visual-diff#readme",
+  "devDependencies": {
+    "mocha": "^3.5.3",
+    "rimraf": "^2.6.2",
+    "wdio": "^1.0.3",
+    "wdio-mocha-framework": "^0.5.11",
+    "wdio-selenium-standalone-service": "0.0.9",
+    "wdio-spec-reporter": "^0.1.2",
+    "wdio-static-server-service": "^1.0.1"
+  },
+  "dependencies": {
+    "async": "^2.5.0",
+    "mkdirp": "^0.5.1",
+    "node-resemble-v2": "^1.0.0",
+    "npm-run-all": "^4.1.1",
+    "wdio-screenshot": "^0.6.0"
+  }
+}

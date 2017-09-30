@@ -1,3 +1,8 @@
+errorShots
+test-dir-async
+test-dir-sync
+shots
+
 # Logs
 logs
 *.log
