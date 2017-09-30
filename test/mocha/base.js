@@ -6,6 +6,7 @@ const rimraf = require('rimraf');
 const VisualDiff = require('./../../index');
 const testDirectory = __dirname + '/test-dir';
 const imageData = fs.readFileSync(__dirname + '/image.png')
+const wrongImageData = fs.readFileSync(__dirname + '/wrong.png')
 
 const mockRefs = (vd, testName) => {
   Object.keys(vd.resolutions).map((resolution) => {
@@ -76,14 +77,21 @@ const syncBrowserMock = {
 };
 
 
-describe('VisualDiff class', () => {
+describe('VisualDiff class', function() {
+  this.slow(2000);
+  this.timeout(4000);
 
-  describe('async', function() {
+  describe('async', () => {
     const testDir = testDirectory + '-async';
     let vd;
 
     before((done) => {
       vd = new VisualDiff(asyncBrowserMock, testDir + '/shots', testDir + '/refs');
+      vd.resolutions = {
+        landscape: {width: 320, height: 240},
+        portrait: {width: 240, height: 320}
+      };
+
       asyncMakeTestDir(vd.referencesPath)
         .then(() => {
           mockRefs(vd, 'async');
@@ -92,27 +100,46 @@ describe('VisualDiff class', () => {
         .catch(done);
     });
 
+    it('has the given resolutions', () => {
+      assert.ok(vd.resolutions.landscape, 'landscape is present');
+      assert.ok(vd.resolutions.portrait, 'portrait is present');
+    });
+
     it('has a browserName property', () => {
       assert.equal(vd.browserName, 'asyncmock');
     });
 
-    it('works', function(done) {
-      this.slow(2000);
-      this.timeout(4000);
+    it('can compare 2 images', (done) => {
+      vd.compare('async', 'arbitrary', imageData, wrongImageData)
+        .then(() => {
+          done(new Error('Should have fail'));
+        })
+        .catch(() => {
+          vd.compare('async', 'arbitrary', imageData, imageData)
+            .then(() => { done(); })
+            .catch(done);
+        });
+    });
 
-      vd.shootAll('async', 100)
+    it('compares all resolutions', (done) => {
+      vd.shootAll('async')
         .then(() => { done(); })
         .catch(done);
     });
   });
 
 
-  describe('sync', function() {
+  describe('sync', () => {
     const testDir = testDirectory + '-sync';
     let vd;
 
     before((done) => {
       vd = new VisualDiff(syncBrowserMock, testDir + '/shots', testDir + '/refs');
+      vd.resolutions = {
+        landscape: {width: 320, height: 240},
+        portrait: {width: 240, height: 320}
+      };
+
       asyncMakeTestDir(vd.referencesPath)
         .then(() => {
           mockRefs(vd, 'sync');
@@ -121,15 +148,29 @@ describe('VisualDiff class', () => {
         .catch(done);
     });
 
+    it('has the given resolutions', () => {
+      assert.ok(vd.resolutions.landscape, 'landscape is present');
+      assert.ok(vd.resolutions.portrait, 'portrait is present');
+    });
+
     it('has a browserName property', () => {
       assert.equal(vd.browserName, 'syncmock');
     });
 
-    it('works', function(done) {
-      this.slow(2000);
-      this.timeout(4000);
+    it('can compare 2 images', (done) => {
+      vd.compare('sync', 'arbitrary', imageData, wrongImageData)
+        .then(() => {
+          done(new Error('Should have fail'));
+        })
+        .catch(() => {
+          vd.compare('async', 'arbitrary', imageData, imageData)
+            .then(() => { done(); })
+            .catch(done);
+        });
+    });
 
-      vd.shootAll('sync', 100)
+    it('compares all resolutions', (done) => {
+      vd.shootAll('sync')
         .then(() => { done(); })
         .catch(done);
     });
