@@ -179,6 +179,9 @@ module.exports = class VisualDiff {
             if (data.error) {
               throw new Error(data.error);
             }
+            else if (!data.isSameDimensions) {
+              throw new Error(`Reference and shot dimensions mismatch for ${testName} (${resolution} in ${browserName})`);
+            }
             else if (data.rawMisMatchPercentage > tolerance) {
               fs.writeFileSync(diffFilepath, data.getBuffer(), (err) => {
                 if (err) throw err;
@@ -194,7 +197,10 @@ module.exports = class VisualDiff {
           if (data.error) {
             reject(typeof data.error === 'string' ? new Error(data.error) : data.error)
           }
-          if (data.rawMisMatchPercentage > tolerance) {
+          else if (!data.isSameDimensions) {
+            reject(new Error(`Reference and shot dimensions mismatch for ${testName} (${resolution} in ${browserName})`));
+          }
+          else if (data.rawMisMatchPercentage > tolerance) {
             fs.writeFile(diffFilepath, data.getBuffer(), (err) => {
               reject(err || new Error(`The ${data.misMatchPercentage}% mismatching exceeds the ${tolerance}% tolerance for ${testName} (${resolution} in ${browserName})`));
             });
