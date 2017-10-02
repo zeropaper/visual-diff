@@ -1,10 +1,11 @@
 const capabilities = [];
 const debugging = !!process.env.DEBUGGING;
 const timeoutInterval = debugging ? (24 * 60 * 60 * 1000) : 6000;
+const isCi = require('is-ci');
 
 console.info('DEBUGGING', debugging);
 
-if (!debugging) capabilities.push({
+if (!debugging || isCi) capabilities.push({
   // maxInstances can get overwritten per capability. So if you have an in-house Selenium
   // grid with only 5 firefox instances available you can make sure that not more than
   // 5 instances get started at a time.
