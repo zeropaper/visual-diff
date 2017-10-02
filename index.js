@@ -109,7 +109,7 @@ module.exports = class VisualDiff {
     });
   }
 
-  async asyncShoot(testName, resolution, timeout = 0) {
+  asyncShoot(testName, resolution, timeout = 0) {
     const referenceFilepath = this.referenceFilepath(testName, resolution);
     const baselineFilepath = this.baselineFilepath(testName, resolution);
     const shotFilepath = this.shotFilepath(testName, resolution);
