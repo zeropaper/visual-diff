@@ -14,15 +14,18 @@ describe('wdio async testing', () => {
     if (!isAsync) throw new Error('Not running in async');
   });
 
-  xit('diffs all resolutions', function() {
-    const now = Date.now();
-    const minTimeNeeded = 500 * Object.keys(vd.resolutions).length;
-    return vd.shootAll('async', 500)
-      .then(() => {
-        const timeUsed = Date.now() - now;
-        console.info('timeUsed, minTimeNeeded', timeUsed, minTimeNeeded);
-        if (timeUsed < minTimeNeeded) throw new Error(`Took only ${timeUsed}ms (on ${minTimeNeeded}ms)`);
-      })/*
-      .catch((err) => { throw err; })*/;
+  it('diffs all resolutions', () => {
+    return new Promise((resolve, reject) => {
+      const now = Date.now();
+      const minTimeNeeded = 500 * Object.keys(vd.resolutions).length;
+
+      vd.shootAll('async', 500)
+        .then(() => {
+          const timeUsed = Date.now() - now;
+          if (timeUsed < minTimeNeeded) return reject(new Error(`Took only ${timeUsed}ms (on ${minTimeNeeded}ms)`));
+          resolve();
+        })
+        .catch(reject);
+    });
   });
 });

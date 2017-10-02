@@ -17,9 +17,11 @@ describe('wdio sync testing', () => {
   it('diffs all resolutions', () => {
     const now = Date.now();
     const minTimeNeeded = 500 * Object.keys(vd.resolutions).length;
-    vd.shootAll('sync', 500);
-    const timeUsed = Date.now() - now;
-    console.info('timeUsed, minTimeNeeded', timeUsed, minTimeNeeded);
-    if (timeUsed < minTimeNeeded) throw new Error(`Took only ${timeUsed}ms (on ${minTimeNeeded}ms)`);
+    return vd.shootAll('sync', 500, (err) => {
+      if (err) throw err;
+      const timeUsed = Date.now() - now;
+      console.info('timeUsed, minTimeNeeded', timeUsed, minTimeNeeded);
+      if (timeUsed < minTimeNeeded) throw new Error(`Took only ${timeUsed}ms (on ${minTimeNeeded}ms)`);
+    });
   });
 });
