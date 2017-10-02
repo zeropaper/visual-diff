@@ -3,7 +3,7 @@ const path = require('path');
 const resemble = require('node-resemble-v2');
 const saveReference = !!process.env.TEST_SAVE_BASELINE;
 const mkdirp = require('mkdirp');
-const asyncMap = require('async').map;
+const eachSeries = require('async').eachSeries;
 
 
 const readFile = fs.readFileSync;
@@ -85,12 +85,28 @@ module.exports = class VisualDiff {
     writeFile(path.join(this.shotsPath, `${testName}--${this.driverName}.html`), htmlFile);
   }
 
-  shootAll(testName, timeout = 0) {
+  shootAll(testName, timeout, done = null) {
     this.addHTML(testName);
-    const resolutions = this.resolutions;
 
-    return Promise.all(Object.keys(this.resolutions)
-            .map(resolution => this.shoot(testName, resolution, timeout)));
+    const resolutions = Object.keys(this.resolutions);
+
+    if (this.syncMode) {
+      resolutions.forEach((resolution) => {
+        this.shoot(testName, resolution, timeout);
+      });
+      return;
+    }
+
+    return new Promise((resolve, reject) => {
+      eachSeries(resolutions, (resolution, cb) => {
+        this.shoot(testName, resolution, timeout)
+          .then(() => { cb(); })
+          .catch(cb);
+      }, (err) => {
+        if (err) return reject(err);
+        resolve();
+      });
+    });
   }
 
   async asyncShoot(testName, resolution, timeout = 0) {
@@ -103,19 +119,25 @@ module.exports = class VisualDiff {
     };
     const reference = this.getReference(testName, resolution);
 
-    await this.driver.windowHandleSize(size);
+    const driver = this.driver;
+    const now = Date.now();
+    return driver.windowHandleSize(size)
+      .then(() => {
+        return driver.pause(timeout)
+          .then(() => {
+            if (!reference) return driver.saveScreenshot(referenceFilepath);
+            writeFile(baselineFilepath, reference);
+            return driver.saveScreenshot(shotFilepath)
+              .then((screenshot) => {
+                return this.compare(testName, resolution, screenshot, reference);
+              });
+          });
+      });
 
-    await this.driver.pause(timeout);
 
-    if (!reference) {
-      return this.driver.saveScreenshot(referenceFilepath);
-    }
 
-    writeFile(baselineFilepath, reference);
 
-    const screenshot = await this.driver.saveScreenshot(shotFilepath);
 
-    return this.compare(testName, resolution, screenshot, reference);
   }
 
   shoot(testName, resolution, timeout = 0) {
@@ -130,6 +152,7 @@ module.exports = class VisualDiff {
       width: this.resolutions[resolution][0],
       height: this.resolutions[resolution][1]
     };
+
     const reference = this.getReference(testName, resolution);
 
     this.driver.windowHandleSize(size);
@@ -137,14 +160,15 @@ module.exports = class VisualDiff {
     this.driver.pause(timeout);
 
     if (!reference) {
-      return this.driver.saveScreenshot(referenceFilepath);
+      this.driver.saveScreenshot(referenceFilepath);
+      return;
     }
 
     writeFile(baselineFilepath, reference);
 
     const screenshot = this.driver.saveScreenshot(shotFilepath);
 
-    return this.compare(testName, resolution, screenshot, reference);
+    this.compare(testName, resolution, screenshot, reference);
   }
 
   compare(testName, resolution, screenshot, reference) {
@@ -153,14 +177,31 @@ module.exports = class VisualDiff {
     const shotFilename = this.shotFilename;
     const diffFilepath = this.diffFilepath(testName, resolution);
 
+    if (this.syncMode) {
+      return resemble(screenshot)
+          .compareTo(reference)
+          .onComplete((data) => {
+            if (data.error) {
+              throw new Error(data.error);
+            }
+            else if (data.rawMisMatchPercentage > tolerance) {
+              fs.writeFileSync(diffFilepath, data.getBuffer(), (err) => {
+                if (err) throw err;
+              });
+            }
+          });
+    }
+
     return new Promise((resolve, reject) => {
       resemble(screenshot)
         .compareTo(reference)
         .onComplete((data) => {
+          if (data.error) {
+            reject(typeof data.error === 'string' ? new Error(data.error) : data.error)
+          }
           if (data.rawMisMatchPercentage > tolerance) {
-            fs.writeFile(diffFilepath, data.getBuffer(), err => {
-              if (err) return reject(err);
-              reject(new Error(`The ${data.misMatchPercentage}% mismatching exceeds the ${tolerance}% tolerance for ${testName} (${resolution} in ${browserName})`));
+            fs.writeFile(diffFilepath, data.getBuffer(), (err) => {
+              reject(err || new Error(`The ${data.misMatchPercentage}% mismatching exceeds the ${tolerance}% tolerance for ${testName} (${resolution} in ${browserName})`));
             });
           }
           else {
