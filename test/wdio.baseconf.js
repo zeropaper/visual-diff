@@ -1,6 +1,10 @@
 const capabilities = [];
+const debugging = !!process.env.DEBUGGING;
+const timeoutInterval = debugging ? (24 * 60 * 60 * 1000) : 6000;
 
-capabilities.push({
+console.info('DEBUGGING', debugging);
+
+if (!debugging) capabilities.push({
   // maxInstances can get overwritten per capability. So if you have an in-house Selenium
   // grid with only 5 firefox instances available you can make sure that not more than
   // 5 instances get started at a time.
@@ -18,6 +22,7 @@ capabilities.push({
 });
 
 exports.config = {
+  execArgv: debugging ? ['--inspect'] : [],
   //
   // ==================
   // Specify Test Files
@@ -143,7 +148,8 @@ exports.config = {
   // Options to be passed to Mocha.
   // See the full list at http://mochajs.org/
   mochaOpts: {
-    ui: 'bdd'
+    ui: 'bdd',
+    timeout: timeoutInterval
   },
   //
   // =====
