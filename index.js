@@ -123,7 +123,7 @@ module.exports = class VisualDiff {
     const now = Date.now();
     return driver.windowHandleSize(size)
       .then(() => {
-        return driver.pause(timeout)
+        return driver.pause(10 + timeout)
           .then(() => {
             if (!reference) return driver.saveScreenshot(referenceFilepath);
             writeFile(baselineFilepath, reference);
@@ -133,11 +133,6 @@ module.exports = class VisualDiff {
               });
           });
       });
-
-
-
-
-
   }
 
   shoot(testName, resolution, timeout = 0) {
@@ -157,7 +152,7 @@ module.exports = class VisualDiff {
 
     this.driver.windowHandleSize(size);
 
-    this.driver.pause(timeout);
+    this.driver.pause(10 + timeout);
 
     if (!reference) {
       this.driver.saveScreenshot(referenceFilepath);
