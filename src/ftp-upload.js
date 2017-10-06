@@ -47,8 +47,10 @@ function uploadToFTP(files) {
   ftp.deploy(ftpConfig, function(err, fileName) {
     if (err) {
       console.log("error " + err);
+      process.exit(1);
     } else {
       console.log("Completed uploading");
+      process.exit(0);
     }
   });
 }
