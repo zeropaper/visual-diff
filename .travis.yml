@@ -11,7 +11,7 @@ before_install:
  - sh -e /etc/init.d/xvfb start
  - sleep 3 # give xvfb some time to start
  - sudo apt-get update
- - sudo apt-get install -y libappindicator1 fonts-liberation libcairo2-dev libjpeg8-dev libpango1.0-dev libgif-dev build-essential g++
+ - sudo apt-get install -y ttf-mscorefonts-installer libappindicator1 fonts-liberation libcairo2-dev libjpeg8-dev libpango1.0-dev libgif-dev build-essential g++
  - wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
  - sudo dpkg -i google-chrome*.deb
 after_failure:
