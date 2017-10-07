@@ -17,16 +17,12 @@ const makeTestDir = (directory, callback) => {
   rimraf(directory, (err) => {
     if (err) return callback(err);
     mkdirp(directory, callback);
-    // mkdirp(directory, () => {
-    //   if (err) return callback(err);
-    //   fs.writeFile(directory + '/empty.txt', '', callback);
-    // });
   });
 };
 const asyncMakeTestDir = util.promisify(makeTestDir);
 
 const pause = (time) => {
-  return new Promise((resolve/*, reject*/) => {
+  return new Promise((resolve) => {
     setTimeout(() => {
       resolve();
     }, time);
@@ -37,7 +33,6 @@ const saveScreenshot = (destination) => {
   return new Promise((resolve, reject) => {
     setTimeout(() => {
       fs.writeFile(destination, imageData, (err) => {
-        // if (err) return reject(err);
         resolve(imageData);
       });
     }, 50);
@@ -45,7 +40,7 @@ const saveScreenshot = (destination) => {
 };
 
 const windowHandleSize = (size) => {
-  return new Promise((resolve/*, reject*/) => {
+  return new Promise((resolve) => {
     setTimeout(() => {
       resolve();
     }, 50);
